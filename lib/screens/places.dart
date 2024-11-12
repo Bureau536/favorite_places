@@ -13,7 +13,7 @@ class PlacesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Your PLaces'),
+        title: const Text('Your Places'),
         actions: [
           IconButton(
             onPressed: () {
