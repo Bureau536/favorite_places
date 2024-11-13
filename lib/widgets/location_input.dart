@@ -1,10 +1,11 @@
 import 'dart:convert';
 
-import 'package:favorite_places/models/place.dart';
+import 'package:favorite_places/secrets/keys.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:http/http.dart' as http;
-import 'package:favorite_places/secrets/keys.dart';
+
+import 'package:favorite_places/models/place.dart';
 
 class LocationInput extends StatefulWidget {
   const LocationInput({super.key, required this.onSelectLocation});
@@ -18,20 +19,19 @@ class LocationInput extends StatefulWidget {
 }
 
 class _LocationInputState extends State<LocationInput> {
-  Location? _pickedLocation;
+  PlaceLocation? _pickedLocation;
   var _isGettingLocation = false;
 
   String get locationImage {
     if (_pickedLocation == null) {
       return '';
     }
-    // final lat = _pickedLocation!.latitude;
-    // final lng = _pickedLocation!.longitude;
-    // return 'https://maps.googleapis.com/maps/api/staticmap?center=$lat,$lng=&zoom=16&size=600x300&maptype=roadmap&markers=color:red%7Clabel:A%7C$lat,$lng&key=$googleKey';
-    return '';
+    final lat = _pickedLocation!.latitude;
+    final lng = _pickedLocation!.longitude;
+    return 'https://maps.googleapis.com/maps/api/staticmap?center=$lat,$lng=&zoom=16&size=600x300&maptype=roadmap&markers=color:red%7Clabel:A%7C$lat,$lng&key=$googleKey';
   }
 
-  void _getcurrentLocation() async {
+  void _getCurrentLocation() async {
     Location location = Location();
 
     bool serviceEnabled;
@@ -59,7 +59,6 @@ class _LocationInputState extends State<LocationInput> {
     });
 
     locationData = await location.getLocation();
-
     final lat = locationData.latitude;
     final lng = locationData.longitude;
 
@@ -74,10 +73,15 @@ class _LocationInputState extends State<LocationInput> {
     final address = resData['results'][0]['formatted_address'];
 
     setState(() {
+      _pickedLocation = PlaceLocation(
+        latitude: lat,
+        longitude: lng,
+        address: address,
+      );
       _isGettingLocation = false;
     });
 
-    // widget.onSelectLocation(_pickedLocation!);
+    widget.onSelectLocation(_pickedLocation!);
   }
 
   @override
@@ -89,6 +93,15 @@ class _LocationInputState extends State<LocationInput> {
             color: Theme.of(context).colorScheme.onSurface,
           ),
     );
+
+    if (_pickedLocation != null) {
+      previewContent = Image.network(
+        locationImage,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+      );
+    }
 
     if (_isGettingLocation) {
       previewContent = const CircularProgressIndicator();
@@ -112,18 +125,14 @@ class _LocationInputState extends State<LocationInput> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             TextButton.icon(
-              onPressed: _getcurrentLocation,
+              icon: const Icon(Icons.location_on),
               label: const Text('Get Current Location'),
-              icon: const Icon(
-                Icons.location_on,
-              ),
+              onPressed: _getCurrentLocation,
             ),
             TextButton.icon(
-              onPressed: () {},
+              icon: const Icon(Icons.map),
               label: const Text('Select on Map'),
-              icon: const Icon(
-                Icons.location_on,
-              ),
+              onPressed: () {},
             ),
           ],
         ),
